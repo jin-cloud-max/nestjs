@@ -1,34 +1,54 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { EmptyResultError } from 'sequelize';
+import { AccountStorageService } from 'src/accounts/account-storage/account-storage.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order } from './entities/order.entity';
 
 @Injectable()
 export class OrdersService {
-  constructor(@InjectModel(Order) private orderModel: typeof Order) {}
+    constructor(
+        @InjectModel(Order)
+        private orderModel: typeof Order,
 
-  create(createOrderDto: CreateOrderDto) {
-    return this.orderModel.create(createOrderDto);
-  }
+        private accountStorage: AccountStorageService
+    ) { }
 
-  findAll() {
-    return this.orderModel.findAll();
-  }
+    create(createOrderDto: CreateOrderDto) {
+        return this.orderModel.create({
+            ...createOrderDto,
+            account_id: this.accountStorage.account.id
+        });
+    }
 
-  findOne(id: string) {
-    return this.orderModel.findByPk(id);
-  }
+    findAll() {
+        return this.orderModel.findAll({
+            where: {
+                account_id: this.accountStorage.account.id
+            }
+        });
+    }
 
-  async update(id: string, updateOrderDto: UpdateOrderDto) {
-    const order = await this.findOne(id);
+    findOne(id: string) {
+        return this.orderModel.findOne({
+            where: {
+                id,
+                account_id: this.accountStorage.account.id
+            },
+            rejectOnEmpty: new EmptyResultError(`Account with ID/Token ${id} not found`)
+        });
+    }
 
-    return order.update(updateOrderDto);
-  }
+    async update(id: string, updateOrderDto: UpdateOrderDto) {
+        const order = await this.findOne(id);
 
-  async remove(id: string) {
-    const order = await this.findOne(id);
+        return order.update(updateOrderDto);
+    }
 
-    return order.destroy();
-  }
+    async remove(id: string) {
+        const order = await this.findOne(id);
+
+        return order.destroy();
+    }
 }
