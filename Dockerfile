@@ -7,5 +7,3 @@ RUN npm i -g @nestjs/cli@7.4.1
 USER node
 
 WORKDIR /home/node/app
-
-CMD ["npm","run","start:dev"]
