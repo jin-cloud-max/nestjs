@@ -21,7 +21,7 @@ export enum OrderStatus {
 })
 export class Order extends Model {
   @PrimaryKey
-  @Column({ type: DataType.UUIDV4, defaultValue: DataType.UUIDV4 })
+  @Column({ type: DataType.UUID, defaultValue: DataType.UUIDV4 })
   id: string;
 
   @Column({ allowNull: false, type: DataType.DECIMAL(10, 2) })
@@ -38,7 +38,7 @@ export class Order extends Model {
 
   @ForeignKey(() => Account)
   @Column({
-    type: DataType.UUIDV4,
+    type: DataType.UUID,
     allowNull: false
   })
   account_id: string
