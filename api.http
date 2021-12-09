@@ -25,5 +25,4 @@ Content-Type: application/json
 }
 
 ###
-
 DELETE http://localhost:3000/orders/4a55d171-c8a2-436f-bd90-56318f72f00e
