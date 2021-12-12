@@ -3,26 +3,28 @@ import { AccountStorageService } from './account-storage/account-storage.service
 
 @Injectable()
 export class TokenGuard implements CanActivate {
-    constructor(private accountStorage: AccountStorageService) { }
+   constructor(private accountStorage: AccountStorageService) {}
 
-    async canActivate(
-        context: ExecutionContext,
-    ): Promise<boolean> {
-        const request = context.switchToHttp().getRequest()
+   async canActivate(context: ExecutionContext): Promise<boolean> {
+      if (context.getType() !== 'http') {
+         return true;
+      }
 
-        const token = request.headers?.['x-token'] as string
+      const request = context.switchToHttp().getRequest();
 
-        if (token) {
-            try {
-                await this.accountStorage.setBy(token)
+      const token = request.headers?.['x-token'] as string;
 
-                return true
-            } catch (err) {
-                console.log(err)
-                return false
-            }
-        }
+      if (token) {
+         try {
+            await this.accountStorage.setBy(token);
 
-        return false
-    }
+            return true;
+         } catch (err) {
+            console.log(err);
+            return false;
+         }
+      }
+
+      return false;
+   }
 }

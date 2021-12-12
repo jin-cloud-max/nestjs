@@ -10,7 +10,7 @@ POST http://localhost:3000/accounts
 Content-Type: application/json
 
 {
-    "name": "conta 1"
+    "name": "conta 2"
 }
 
 ###

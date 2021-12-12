@@ -4,16 +4,15 @@ import { Account } from '../entities/account.entity';
 
 @Injectable({ scope: Scope.REQUEST })
 export class AccountStorageService {
-    private _account: Account | null = null
+   private _account: Account | null = null;
 
-    constructor(private accountService: AccountsService) { }
+   constructor(private accountService: AccountsService) {}
 
-    get account(): Account {
-        return this._account
-    }
-    
-    async setBy(token: string): Promise<void> {
-        this._account = await this.accountService.findOne(token)
-    }
+   get account(): Account {
+      return this._account;
+   }
+
+   async setBy(token: string): Promise<void> {
+      this._account = await this.accountService.findOne(token);
+   }
 }
- 

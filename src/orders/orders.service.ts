@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { Producer } from '@nestjs/microservices/external/kafka.interface';
 import { InjectModel } from '@nestjs/sequelize';
 import { EmptyResultError } from 'sequelize';
 import { AccountStorageService } from 'src/accounts/account-storage/account-storage.service';
@@ -8,47 +9,74 @@ import { Order } from './entities/order.entity';
 
 @Injectable()
 export class OrdersService {
-    constructor(
-        @InjectModel(Order)
-        private orderModel: typeof Order,
+   constructor(
+      @InjectModel(Order)
+      private orderModel: typeof Order,
 
-        private accountStorage: AccountStorageService
-    ) { }
+      private accountStorage: AccountStorageService,
 
-    create(createOrderDto: CreateOrderDto) {
-        return this.orderModel.create({
-            ...createOrderDto,
-            account_id: this.accountStorage.account.id
-        });
-    }
+      @Inject('KAFKA_PRODUCER')
+      private kafkaProducer: Producer,
+   ) {}
 
-    findAll() {
-        return this.orderModel.findAll({
-            where: {
-                account_id: this.accountStorage.account.id
-            }
-        });
-    }
+   async create(createOrderDto: CreateOrderDto) {
+      const order = await this.orderModel.create({
+         ...createOrderDto,
+         account_id: this.accountStorage.account.id,
+      });
 
-    findOne(id: string) {
-        return this.orderModel.findOne({
-            where: {
-                id,
-                account_id: this.accountStorage.account.id
+      this.kafkaProducer.send({
+         topic: 'transactions',
+         messages: [
+            {
+               key: 'transactions',
+               value: JSON.stringify({
+                  ...createOrderDto,
+                  ...order.toJSON(),
+               }),
             },
-            rejectOnEmpty: new EmptyResultError(`Account with ID/Token ${id} not found`)
-        });
-    }
+         ],
+      });
 
-    async update(id: string, updateOrderDto: UpdateOrderDto) {
-        const order = await this.findOne(id);
+      return order;
+   }
 
-        return order.update(updateOrderDto);
-    }
+   findAll() {
+      return this.orderModel.findAll({
+         where: {
+            account_id: this.accountStorage.account.id,
+         },
+      });
+   }
 
-    async remove(id: string) {
-        const order = await this.findOne(id);
+   findOneUsingAccount(id: string) {
+      return this.orderModel.findOne({
+         where: {
+            id,
+            account_id: this.accountStorage.account.id,
+         },
+         rejectOnEmpty: new EmptyResultError(
+            `Account with ID/Token ${id} not found`,
+         ),
+      });
+   }
 
-        return order.destroy();
-    }
+   findOne(id: string) {
+      return this.orderModel.findByPk(id);
+   }
+
+   async update(id: string, updateOrderDto: UpdateOrderDto) {
+      const account = this.accountStorage.account;
+      const order = await (account
+         ? this.findOneUsingAccount(id)
+         : this.findOne(id));
+
+      return order.update(updateOrderDto);
+   }
+
+   async remove(id: string) {
+      const order = await this.findOneUsingAccount(id);
+
+      return order.destroy();
+   }
 }

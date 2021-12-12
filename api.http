@@ -1,23 +1,29 @@
+
 GET http://localhost:3000/orders
-x-token: y1zu8o5lrj
+x-token: llls0a85vsj
 
 ###
-GET http://localhost:3000/orders/4a55d171-c8a2-436f-bd90-56318f72f00e
+GET http://localhost:3000/orders/f1acd0c5-c120-47bc-983c-c4a4a1c02136
+x-token: llls0a85vsj
 
 ###
 POST http://localhost:3000/orders
 Content-Type: application/json
-x-token: j9l3y46lad
+x-token: llls0a85vsj
 
 {
-    "amount": 10.10,
-    "credit_card_number":"1111",
-    "credit_card_name":"Jin Bok"
+    "amount": 100.10,
+    "credit_card_number":"4193523830170205",
+    "credit_card_name":"Jin Bok",
+    "credit_card_expiration_month": 12,
+    "credit_card_expiration_year": 2022,
+    "credit_card_cvv": "123"
 }
 
 ###
-PATCH http://localhost:3000/orders/4a55d171-c8a2-436f-bd90-56318f72f00e
+PATCH http://localhost:3000/orders/753bb577-6b30-492d-a223-403513ed1e28
 Content-Type: application/json
+x-token: llls0a85vsj
 
 {
     "amount": 30.10,
